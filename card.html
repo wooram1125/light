@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기억력 게임</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #game-wrapper {
+            display: flex;
+            gap: 50px;
+        }
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #game-container, #answer-container {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .hidden {
+            background-color: white !important;
+        }
+        #answer-container {
+            display: none;
+        }
+        #timer {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>기억력 게임</h1>
+    <label for="grid-size">그리드 크기 선택 (예: 4x4, 5x5): </label>
+    <input type="number" id="grid-size" min="2" max="10" value="4">
+    <button onclick="startGame()">게임 시작</button>
+    <button onclick="showAnswers()">정답보기</button>
+    <div id="timer">남은 시간: 5초</div>
+    <div id="game-wrapper">
+        <div class="game-section">
+            <h2>문제</h2>
+            <div id="game-container"></div>
+        </div>
+        <div class="game-section">
+            <h2>정답</h2>
+            <div id="answer-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let hiddenCells = [];
+        let cells = [];
+        let countdown;
+        const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'navy', 'purple'];
+
+        function getRandomColor() {
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function startGame() {
+            clearInterval(countdown);
+            let timeLeft = 5;
+            document.getElementById('timer').textContent = `남은 시간: ${timeLeft}초`;
+            countdown = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `남은 시간: ${timeLeft}초`;
+                if (timeLeft <= 0) clearInterval(countdown);
+            }, 1000);
+
+            const size = parseInt(document.getElementById('grid-size').value);
+            const gameContainer = document.getElementById('game-container');
+            const answerContainer = document.getElementById('answer-container');
+            gameContainer.innerHTML = '';
+            answerContainer.innerHTML = '';
+            gameContainer.style.gridTemplateColumns = `repeat(${size}, 100px)`;
+            gameContainer.style.gridTemplateRows = `repeat(${size}, 100px)`;
+            answerContainer.style.gridTemplateColumns = `repeat(${size}, 100px)`;
+            answerContainer.style.gridTemplateRows = `repeat(${size}, 100px)`;
+
+            cells = [];
+            hiddenCells = [];
+            answerContainer.style.display = 'none';
+
+            for (let i = 0; i < size * size; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.style.backgroundColor = getRandomColor();
+                cells.push(cell);
+                gameContainer.appendChild(cell);
+            }
+
+            setTimeout(() => {
+                while (hiddenCells.length < Math.min(5, size * size)) {
+                    let index = Math.floor(Math.random() * cells.length);
+                    if (!hiddenCells.includes(index)) {
+                        hiddenCells.push(index);
+                    }
+                }
+
+                hiddenCells.forEach(index => {
+                    cells[index].classList.add('hidden');
+                });
+            }, 5000);
+        }
+
+        function showAnswers() {
+            const answerContainer = document.getElementById('answer-container');
+            answerContainer.innerHTML = '';
+            answerContainer.style.display = 'grid';
+
+            const size = parseInt(document.getElementById('grid-size').value);
+            for (let i = 0; i < size * size; i++) {
+                const answerCell = document.createElement('div');
+                answerCell.classList.add('cell');
+                if (hiddenCells.includes(i)) {
+                    answerCell.style.backgroundColor = cells[i].style.backgroundColor;
+                } else {
+                    answerCell.style.backgroundColor = 'white';
+                }
+                answerContainer.appendChild(answerCell);
+            }
+        }
+    </script>
+</body>
+</html>
