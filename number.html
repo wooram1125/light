@@ -30,6 +30,8 @@
             font-size: 5em;
             font-weight: bold;
             margin: 20px 0;
+        }
+        .hidden {
             visibility: hidden;
         }
         .countdown {
@@ -50,29 +52,19 @@
 <body>
     <div class="container">
         <h1>숫자 기억 게임</h1>
-        <p>카운트다운 후 숫자가 공개됩니다!</p>
-        <div class="countdown" id="countdown"></div>
+        <p>제시된 숫자를 기억하세요!</p>
         <div class="number-display" id="numberDisplay"></div>
-        <button onclick="startCountdown()">다음 숫자</button>
+        <div class="countdown" id="countdown"></div>
+        <button onclick="startGame()">다음 숫자</button>
     </div>
 
     <script>
         let step = 6;
         let generatedNumber = "";
 
-        function startCountdown() {
-            document.getElementById("numberDisplay").style.visibility = "hidden";
-            let countdown = 5;
-            document.getElementById("countdown").innerText = countdown;
-            let interval = setInterval(() => {
-                countdown--;
-                document.getElementById("countdown").innerText = countdown;
-                if (countdown === 0) {
-                    clearInterval(interval);
-                    document.getElementById("countdown").innerText = "";
-                    generateNumber();
-                }
-            }, 1000);
+        function startGame() {
+            generateNumber();
+            setTimeout(startCountdown, 3000); // 3초 후 숫자 숨기고 카운트 시작
         }
 
         function generateNumber() {
@@ -81,14 +73,26 @@
                 generatedNumber += Math.floor(Math.random() * 10);
             }
             document.getElementById("numberDisplay").innerText = generatedNumber;
-            document.getElementById("numberDisplay").style.visibility = "visible";
-            setTimeout(() => {
-                step++;
-                if (step > 10) {
-                    alert("축하합니다! 모든 단계를 완료했습니다.");
-                    step = 6;
+            document.getElementById("numberDisplay").classList.remove("hidden");
+        }
+
+        function startCountdown() {
+            document.getElementById("numberDisplay").classList.add("hidden");
+            let countdown = 5;
+            document.getElementById("countdown").innerText = countdown;
+            let interval = setInterval(() => {
+                countdown--;
+                document.getElementById("countdown").innerText = countdown;
+                if (countdown === 0) {
+                    clearInterval(interval);
+                    document.getElementById("countdown").innerText = "";
+                    step++;
+                    if (step > 10) {
+                        alert("축하합니다! 모든 단계를 완료했습니다.");
+                        step = 6;
+                    }
                 }
-            }, 3000); // 3초 동안 숫자 표시
+            }, 1000);
         }
     </script>
 </body>
