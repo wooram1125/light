@@ -35,7 +35,8 @@
             visibility: hidden;
         }
         .countdown {
-            font-size: 2em;
+            font-size: 6em;
+            font-weight: bold;
             color: red;
         }
         button {
@@ -47,24 +48,33 @@
             border-radius: 5px;
             margin-top: 20px;
         }
+        .invisible {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>숫자 기억 게임</h1>
-        <p>제시된 숫자를 기억하세요!</p>
+        <h1 id="title">숫자 기억 게임</h1>
+        <p id="instruction">제시된 숫자를 기억하세요!</p>
         <div class="number-display" id="numberDisplay"></div>
         <div class="countdown" id="countdown"></div>
-        <button onclick="startGame()">다음 숫자</button>
+        <button id="gameButton" onclick="startGame()">게임 시작</button>
     </div>
 
     <script>
         let step = 6;
         let generatedNumber = "";
+        let gameStarted = false;
 
         function startGame() {
+            if (!gameStarted) {
+                document.getElementById("gameButton").innerText = "다음 숫자";
+                gameStarted = true;
+            }
+            document.getElementById("instruction").classList.remove("invisible");
             generateNumber();
-            setTimeout(startCountdown, 3000); // 3초 후 숫자 숨기고 카운트 시작
+            setTimeout(hideNumberAndStartCountdown, 3000); // 3초 후 숫자 숨기고 카운트 시작
         }
 
         function generateNumber() {
@@ -76,8 +86,10 @@
             document.getElementById("numberDisplay").classList.remove("hidden");
         }
 
-        function startCountdown() {
+        function hideNumberAndStartCountdown() {
             document.getElementById("numberDisplay").classList.add("hidden");
+            document.getElementById("instruction").classList.add("invisible");
+            document.getElementById("gameButton").classList.add("invisible");
             let countdown = 5;
             document.getElementById("countdown").innerText = countdown;
             let interval = setInterval(() => {
@@ -86,13 +98,23 @@
                 if (countdown === 0) {
                     clearInterval(interval);
                     document.getElementById("countdown").innerText = "";
-                    step++;
-                    if (step > 10) {
-                        alert("축하합니다! 모든 단계를 완료했습니다.");
-                        step = 6;
-                    }
+                    revealNumber();
                 }
             }, 1000);
+        }
+
+        function revealNumber() {
+            document.getElementById("numberDisplay").classList.remove("hidden");
+            setTimeout(() => {
+                step++;
+                if (step > 10) {
+                    alert("축하합니다! 모든 단계를 완료했습니다.");
+                    step = 6;
+                    document.getElementById("gameButton").innerText = "게임 시작";
+                    gameStarted = false;
+                }
+                document.getElementById("gameButton").classList.remove("invisible");
+            }, 3000); // 정답 숫자를 3초 동안 보여줌
         }
     </script>
 </body>
