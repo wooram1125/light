@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>단어 기억력 게임 - 5×6 배열 (디지털 타이머, 정답보기 버튼 포함)</title>
+  <!-- Google Fonts에서 Nanum Gothic Bold (700) 불러오기 -->
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* 기본 리셋 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* body: 흰색 배경, 전체 창 사용, 상대 위치 지정 */
+    body {
+      background-color: #fff;
+      font-family: 'Nanum Gothic', sans-serif;
+      position: relative;
+      overflow: hidden;
+      height: 100vh;
+    }
+    /* 좌상단 원형 게임 시작 버튼 */
+    #start-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background-color: #4CAF50;
+      color: #fff;
+      font-size: 1.5em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease;
+    }
+    #start-button:hover {
+      background-color: #45a049;
+    }
+    #start-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    /* 디지털 타이머: 시작 버튼 오른쪽에 표시 */
+    #timer {
+      position: fixed;
+      top: 20px;
+      left: 90px; /* 시작 버튼(60px) + 여백 */
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #000;
+      z-index: 1000;
+    }
+    /* 정답보기 버튼: 우측 상단에 표시, 기본은 숨김 */
+    #show-answer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      padding: 10px 15px;
+      background-color: #2196F3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease;
+    }
+    #show-answer:hover {
+      background-color: #1976D2;
+    }
+    /* 단어 스타일: Nanum Gothic Bold, 3em, 검정색, 절대 위치, 페이드 효과 */
+    .word {
+      position: absolute;
+      font-size: 3em;
+      font-weight: 700;
+      color: #000;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- 좌상단 원형 게임 시작 버튼 (▶ 아이콘) -->
+  <button id="start-button">▶</button>
+  <!-- 디지털 타이머 -->
+  <div id="timer">02:00</div>
+  <!-- 정답보기 버튼 -->
+  <button id="show-answer">정답보기</button>
+
+  <script>
+    // 30개의 단어 (목록)
+    const words = [
+      "사랑해", "감사한", "소망을", "오직믿음", "기도의 향",
+      "경건함", "신실하신", "예수 그리스도", "절제", "영광의 광채",
+      "주의 말씀", "화평케", "인내", "자비하신", "오래참음",
+      "거룩하니", "보혈", "선한열매", "온유하며", "기쁘게",
+      "은혜", "행함으로", "십자가", "지혜", "절제",
+      "언약의 성취", "영혼 구원", "성령", "부활의 능력", "찬양하리"
+    ];
+
+    const startButton = document.getElementById('start-button');
+    const timerEl = document.getElementById('timer');
+    const showAnswerButton = document.getElementById('show-answer');
+
+    // Fisher-Yates 방식으로 배열을 섞는 함수
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    // 5×6 그리드 셀 내에서 무작위로 단어를 배치하는 함수
+    // 전체 영역은 창의 80% 크기의 직사각형(중앙 배치)로 제한
+    function createWords() {
+      // 기존 단어 요소 삭제 (재시작 대비)
+      document.querySelectorAll('.word').forEach(el => el.remove());
+
+      let wordsCopy = words.slice();
+      shuffleArray(wordsCopy);
+
+      const columns = 5;
+      const rows = 6;
+      const containerWidth = window.innerWidth * 0.8;
+      const containerHeight = window.innerHeight * 0.8;
+      const containerLeft = (window.innerWidth - containerWidth) / 2;
+      const containerTop = (window.innerHeight - containerHeight) / 2;
+
+      const cellWidth = containerWidth / columns;
+      const cellHeight = containerHeight / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < columns; c++) {
+          const index = r * columns + c;
+          if (index >= wordsCopy.length) break;
+          const text = wordsCopy[index];
+          const wordEl = document.createElement('div');
+          wordEl.className = 'word';
+          wordEl.textContent = text;
+          document.body.appendChild(wordEl);
+
+          const wordWidth = wordEl.offsetWidth;
+          const wordHeight = wordEl.offsetHeight;
+
+          const cellX = containerLeft + c * cellWidth;
+          const cellY = containerTop + r * cellHeight;
+          const maxLeftOffset = Math.max(cellWidth - wordWidth, 0);
+          const maxTopOffset = Math.max(cellHeight - wordHeight, 0);
+          const offsetX = Math.random() * maxLeftOffset;
+          const offsetY = Math.random() * maxTopOffset;
+
+          const left = cellX + offsetX;
+          const top = cellY + offsetY;
+          wordEl.style.left = left + 'px';
+          wordEl.style.top = top + 'px';
+        }
+      }
+    }
+
+    // 시간을 mm:ss 형식으로 포맷하는 함수
+    function formatTime(sec) {
+      const minutes = Math.floor(sec / 60);
+      const seconds = sec % 60;
+      return String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+    }
+
+    // 게임 시작 버튼 클릭 이벤트
+    startButton.addEventListener('click', function() {
+      startButton.disabled = true;  // 중복 실행 방지
+      showAnswerButton.style.display = "none";  // 정답보기 버튼 숨기기
+      createWords();
+
+      // 타이머 초기화: 120초(2분)에서 시작
+      let remaining = 120;
+      timerEl.textContent = formatTime(remaining);
+      const timerInterval = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          timerEl.textContent = "00:00";
+          // 2분 종료 시 단어들을 2초 동안 페이드아웃
+          const allWords = document.querySelectorAll('.word');
+          allWords.forEach(el => {
+            el.style.opacity = 0;
+          });
+          // 2초 후 정답보기 버튼 표시
+          setTimeout(() => {
+            showAnswerButton.style.display = "block";
+          }, 2000);
+        } else {
+          timerEl.textContent = formatTime(remaining);
+        }
+      }, 1000);
+
+      // 단어들 페이드인 (50ms 후 opacity 1)
+      const allWords = document.querySelectorAll('.word');
+      allWords.forEach(el => {
+        setTimeout(() => {
+          el.style.opacity = 1;
+        }, 50);
+      });
+    });
+
+    // 정답보기 버튼 클릭 시 단어들을 다시 보이게 함
+    showAnswerButton.addEventListener('click', function() {
+      const allWords = document.querySelectorAll('.word');
+      allWords.forEach(el => {
+        el.style.opacity = 1;
+      });
+      showAnswerButton.style.display = "none";
+      startButton.disabled = false;
+      timerEl.textContent = "02:00";
+    });
+  </script>
+</body>
+</html>

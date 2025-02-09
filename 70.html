@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>노인의 시야 체험 게임</title>
+  <style>
+    /* 기본 스타일 초기화 및 폰트 설정 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    }
+    /* 게임 전체 영역 */
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* 시작 화면 */
+    #startScreen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+    #startScreen p {
+      font-size: 1rem;
+      margin-bottom: 30px;
+      color: #666;
+      text-align: center;
+    }
+    #startButton {
+      font-size: 1.2rem;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      background-color: #4a90e2;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #startButton:hover {
+      background-color: #357ab8;
+    }
+    /* 게임 인터페이스 영역 (타이머, 단어) */
+    #gameInterface {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+    #timer {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+    }
+    /* 단어들이 표시될 영역 */
+    #wordsContainer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .word {
+      position: absolute;
+      font-size: 24px;
+      font-weight: bold;
+      user-select: none;
+      white-space: nowrap;
+      /* 색상이 #22222212에서 #22222224로 서서히 변화하는 애니메이션 */
+      animation: pulseColor 3s ease-in-out infinite;
+    }
+    @keyframes pulseColor {
+      0%   { color: #22222212; }
+      50%  { color: #22222224; }
+      100% { color: #22222212; }
+    }
+    /* 결과 오버레이 */
+    #resultOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      display: none;
+    }
+    #result {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    #result h2 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #333;
+    }
+    #restartButton {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      background-color: #4a90e2;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #restartButton:hover {
+      background-color: #357ab8;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <!-- 시작 화면 -->
+    <div id="startScreen">
+      <p>시작 버튼을 눌러 게임을 시작하세요.<br>눈으로 단어들을 기억해보세요!</p>
+      <button id="startButton">시작</button>
+    </div>
+    <!-- 게임 인터페이스 (타이머, 단어) -->
+    <div id="gameInterface">
+      <div id="timer">1:30</div>
+      <div id="wordsContainer"></div>
+    </div>
+    <!-- 결과 오버레이 -->
+    <div id="resultOverlay">
+      <div id="result">
+        <h2>시간 종료!</h2>
+        <button id="restartButton">재시작</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 30개의 단어 목록
+    const finalWords = [
+      "믿음", "감사", "소망", "은혜", "언약의성취",
+      "기도의향", "행함", "화평", "선한열매", "십자가",
+      "절제", "경건", "기쁘게", "보혈", "구원",
+      "사랑", "성령", "영광의 광채", "인내", "자비",
+      "부활의능력", "예수그리스도", "찬양", "온유", "지혜",
+      "거룩", "오래참음", "신실함", "말씀", "관용"
+    ];
+
+    let timerInterval;
+    let timeLeft = 90; // 90초
+
+    const startButton = document.getElementById("startButton");
+    const startScreen = document.getElementById("startScreen");
+    const gameInterface = document.getElementById("gameInterface");
+    const timerDisplay = document.getElementById("timer");
+    const wordsContainer = document.getElementById("wordsContainer");
+    const resultOverlay = document.getElementById("resultOverlay");
+    const restartButton = document.getElementById("restartButton");
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", restartGame);
+
+    function startGame() {
+      startScreen.style.display = "none";
+      resultOverlay.style.display = "none";
+      gameInterface.style.display = "block";
+      timeLeft = 90;
+      updateTimerDisplay();
+      displayWords();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerDisplay.textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    }
+
+    // 두 사각형이 겹치는지 확인하는 함수
+    function isOverlapping(rect, rects) {
+      for (let i = 0; i < rects.length; i++) {
+        const r = rects[i];
+        if (!(rect.right < r.left || rect.left > r.right || rect.bottom < r.top || rect.top > r.bottom)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 단어들을 화면 중앙의 제한된 영역(전체 영역의 80% 영역) 내에서 겹치지 않도록 랜덤 배치
+    function displayWords() {
+      wordsContainer.innerHTML = "";
+      const placedRects = [];
+      const containerWidth = wordsContainer.clientWidth;
+      const containerHeight = wordsContainer.clientHeight;
+      // 화면 중앙에 전체 영역의 80% 크기의 영역 지정
+      const clusterWidth = containerWidth * 0.8;
+      const clusterHeight = containerHeight * 0.8;
+      const clusterX0 = (containerWidth - clusterWidth) / 2;
+      const clusterY0 = (containerHeight - clusterHeight) / 2;
+
+      finalWords.forEach(word => {
+        const maxAttempts = 100;
+        let placed = false;
+        let rect = null;
+        for (let attempt = 0; attempt < maxAttempts && !placed; attempt++) {
+          // 임시 span 생성하여 글자 크기 측정 (보이지 않게)
+          const tempSpan = document.createElement("span");
+          tempSpan.className = "word";
+          tempSpan.textContent = word;
+          tempSpan.style.visibility = "hidden";
+          tempSpan.style.left = "0px";
+          tempSpan.style.top = "0px";
+          wordsContainer.appendChild(tempSpan);
+          const spanWidth = tempSpan.offsetWidth;
+          const spanHeight = tempSpan.offsetHeight;
+          wordsContainer.removeChild(tempSpan);
+
+          // 클러스터 영역 내에서 랜덤 좌표 생성 (글자가 영역 내에 들어가도록)
+          const randomX = clusterX0 + Math.random() * (clusterWidth - spanWidth);
+          const randomY = clusterY0 + Math.random() * (clusterHeight - spanHeight);
+          rect = { left: randomX, top: randomY, right: randomX + spanWidth, bottom: randomY + spanHeight };
+          if (!isOverlapping(rect, placedRects)) {
+            const span = document.createElement("span");
+            span.className = "word";
+            span.textContent = word;
+            span.style.left = randomX + "px";
+            span.style.top = randomY + "px";
+            wordsContainer.appendChild(span);
+            placedRects.push(rect);
+            placed = true;
+          }
+        }
+        // 최대 시도 후에도 배치되지 않으면, 클러스터 영역 내에서 무조건 배치
+        if (!placed) {
+          const span = document.createElement("span");
+          span.className = "word";
+          span.textContent = word;
+          const randomX = clusterX0 + Math.random() * (clusterWidth - 100);
+          const randomY = clusterY0 + Math.random() * (clusterHeight - 50);
+          span.style.left = randomX + "px";
+          span.style.top = randomY + "px";
+          wordsContainer.appendChild(span);
+        }
+      });
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      gameInterface.style.display = "none";
+      resultOverlay.style.display = "flex";
+    }
+
+    function restartGame() {
+      resultOverlay.style.display = "none";
+      gameInterface.style.display = "block";
+      timeLeft = 90;
+      updateTimerDisplay();
+      displayWords();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
