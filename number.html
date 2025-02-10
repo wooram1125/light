@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>숫자 기억 게임</title>
+  <title>숫자 기억</title>
   <!-- Google Fonts: Noto Sans KR -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -76,7 +76,7 @@
 <body>
   <div class="container">
     <div id="stage" class="hidden">단계: 1</div>
-    <button id="startBtn">게임 시작</button>
+    <button id="startBtn">시작</button>
     <div id="numberDisplay" class="hidden"></div>
     <div id="countdown" class="hidden"></div>
     <button id="nextBtn" class="hidden">다음 단계</button>
@@ -171,7 +171,7 @@
       }, 5000);
     }
 
-    // 다음 단계로 진행 (최종 단계(5단계) 이후엔 게임 리셋)
+    // 다음 단계로 진행 (최종 단계(5단계) 이후엔 리셋)
     function proceedNextStage() {
       currentStage++;
       if(currentStage > 5) {
@@ -183,7 +183,7 @@
       startStage();
     }
 
-    // 게임 초기화
+    // 초기화
     function resetGame() {
       currentStage = 1;
       clearTimeout(timeoutId);
