@@ -82,13 +82,13 @@
       font-weight: bold;
       user-select: none;
       white-space: nowrap;
-      /* 색상이 #22222212에서 #22222224로 서서히 변화하는 애니메이션 */
-      animation: pulseColor 3s ease-in-out infinite;
+      /* 단어가 사라졌다 나타났다 하는 애니메이션 */
+      animation: fade 3s ease-in-out infinite;
     }
-    @keyframes pulseColor {
-      0%   { color: #22222212; }
-      50%  { color: #22222224; }
-      100% { color: #22222212; }
+    @keyframes fade {
+      0%   { opacity: 1; }
+      50%  { opacity: 0; }
+      100% { opacity: 1; }
     }
     /* 결과 오버레이 */
     #resultOverlay {
