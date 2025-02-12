@@ -39,6 +39,7 @@
       color: #555;
     }
 
+    /* 숫자 크기는 가로 폭에 따라 유동적으로 조절(clamp) */
     #numberDisplay {
       font-size: clamp(200px, 10vw, 200px);
       margin: 50px 0;
@@ -46,6 +47,7 @@
       color: #34495e;
     }
 
+    /* 카운트다운 숫자 크게 표시 */
     #countdown {
       font-size: 350px;
       color: #e74c3c;
@@ -61,6 +63,7 @@
       border: none;
       border-radius: 50px;
       transition: transform 0.2s, box-shadow 0.2s;
+      margin: 0 5px; /* 버튼 간격 */
     }
 
     button:hover {
@@ -76,9 +79,17 @@
 <body>
   <div class="container">
     <div id="stage" class="hidden">단계: 1</div>
+    <!-- 시작 버튼 -->
     <button id="startBtn">시작</button>
+
+    <!-- 정답 숫자 표시 -->
     <div id="numberDisplay" class="hidden"></div>
+    <!-- 카운트다운 표시 -->
     <div id="countdown" class="hidden"></div>
+
+    <!-- 정답 공개 버튼 추가 -->
+    <button id="revealBtn" class="hidden">정답 공개</button>
+    <!-- 다음 단계 버튼 -->
     <button id="nextBtn" class="hidden">다음 단계</button>
   </div>
 
@@ -88,6 +99,7 @@
     const numberDisplay = document.getElementById('numberDisplay');
     const countdownDisplay = document.getElementById('countdown');
     const nextBtn = document.getElementById('nextBtn');
+    const revealBtn = document.getElementById('revealBtn');
 
     let currentStage = 1;
     let timeoutId;
@@ -112,7 +124,7 @@
             candidates = [...availableDigits];
           }
         } else {
-          // 모든 숫자를 사용한 후에는 전체 숫자(0~9)에서 직전 숫자와 다른 값을 선택
+          // 모든 숫자를 이미 사용한 후에는 전체 숫자(0~9)에서 직전 숫자와 다른 값을 선택
           candidates = allDigits.filter(d => d !== lastDigit);
           if (candidates.length === 0) {
             candidates = [...allDigits];
@@ -132,9 +144,9 @@
       return number;
     }
 
-    // 카운트다운: 5초 동안 카운트 후 정답 숫자를 다시 공개하고 "다음 단계" 버튼 표시
+    // 카운트다운: 5초 동안 카운트 후, "정답 공개" 버튼을 표시
     function startCountdown() {
-      let count = 7;
+      let count = 5;
       countdownDisplay.textContent = count;
       countdownDisplay.classList.remove('hidden');
 
@@ -145,24 +157,23 @@
         if(count <= 0) {
           clearInterval(intervalId);
           countdownDisplay.classList.add('hidden');
-          // 정답 숫자 다시 공개
-          numberDisplay.classList.remove('hidden');
-          // 다음 단계 버튼 표시
-          nextBtn.classList.remove('hidden');
+          // 정답 공개 버튼을 표시
+          revealBtn.classList.remove('hidden');
         }
       }, 1000);
     }
 
-    // 현재 단계의 숫자를 생성하여 5초간 보여준 후 카운트다운 시작
+    // 현재 단계의 숫자를 생성하여 5초간 보여준 후 숫자를 숨기고 카운트다운 시작
     function startStage() {
-      // 각 단계마다 숫자 자릿수를 증가 (초기 5자리 + currentStage)
+      // 각 단계마다 숫자 자릿수를 증가 (예: 초기 5자리 + currentStage)
       const digits = 5 + currentStage;
       const number = generateNumber(digits);
 
       numberDisplay.textContent = number;
       numberDisplay.classList.remove('hidden');
-      // 다음 단계 버튼은 숨김 처리
+      // "다음 단계" 버튼, "정답 공개" 버튼은 일단 숨김
       nextBtn.classList.add('hidden');
+      revealBtn.classList.add('hidden');
 
       // 5초 후 숫자 숨기고 카운트다운 시작
       timeoutId = setTimeout(() => {
@@ -171,7 +182,7 @@
       }, 5000);
     }
 
-    // 다음 단계로 진행 (최종 단계(5단계) 이후엔 리셋)
+    // 다음 단계로 진행 (최종 단계(5단계) 이후에는 게임 리셋)
     function proceedNextStage() {
       currentStage++;
       if(currentStage > 5) {
@@ -183,7 +194,7 @@
       startStage();
     }
 
-    // 초기화
+    // 게임 초기화
     function resetGame() {
       currentStage = 1;
       clearTimeout(timeoutId);
@@ -193,8 +204,10 @@
       numberDisplay.classList.add('hidden');
       countdownDisplay.classList.add('hidden');
       nextBtn.classList.add('hidden');
+      revealBtn.classList.add('hidden');
     }
 
+    // 시작 버튼 클릭 시
     startBtn.addEventListener('click', () => {
       startBtn.classList.add('hidden');
       stageDisplay.textContent = `단계: ${currentStage}`;
@@ -202,6 +215,15 @@
       startStage();
     });
 
+    // "정답 공개" 버튼 클릭 시
+    revealBtn.addEventListener('click', () => {
+      revealBtn.classList.add('hidden');
+      numberDisplay.classList.remove('hidden');
+      // 정답 공개 후 "다음 단계" 버튼 노출
+      nextBtn.classList.remove('hidden');
+    });
+
+    // "다음 단계" 버튼 클릭 시
     nextBtn.addEventListener('click', () => {
       proceedNextStage();
     });

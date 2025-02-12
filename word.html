@@ -15,7 +15,7 @@
     /* body: 흰색 배경, 전체 창 사용, 상대 위치 지정 */
     body {
       background-color: #fff;
-      font-family: 'Nanum Gothic', sans-serif;
+      font-family: 'Black Han Sans', sans-serif;
       position: relative;
       overflow: hidden;
       height: 100vh;
@@ -82,7 +82,7 @@
     .word {
       position: absolute;
       font-size: 3em;
-      font-weight: 700;
+      font-weight: 900;
       color: #000;
       white-space: nowrap;
       opacity: 0;
@@ -94,7 +94,7 @@
   <!-- 좌상단 원형 게임 시작 버튼 (▶ 아이콘) -->
   <button id="start-button">▶</button>
   <!-- 디지털 타이머 -->
-  <div id="timer">02:00</div>
+  <div id="timer">01:30</div>
   <!-- 정답보기 버튼 -->
   <button id="show-answer">정답보기</button>
 
@@ -182,7 +182,7 @@
       createWords();
 
       // 타이머 초기화: 120초(2분)에서 시작
-      let remaining = 120;
+      let remaining = 90;
       timerEl.textContent = formatTime(remaining);
       const timerInterval = setInterval(() => {
         remaining--;
@@ -220,7 +220,7 @@
       });
       showAnswerButton.style.display = "none";
       startButton.disabled = false;
-      timerEl.textContent = "02:00";
+      timerEl.textContent = "01:30";
     });
   </script>
 </body>

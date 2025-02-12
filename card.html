@@ -148,8 +148,9 @@
     let cells = [];
     let countdown;
     let hideTimeout;  // 셀 숨김 처리 타이머를 저장할 변수
-    // 7가지 무지개 색상을 파스텔 톤으로 표현 (남색은 좀 더 진하게)
-    const colors = ['#FF8A80', '#FFB74D', '#FFF176', '#AED581', '#0D47A1', '#90CAF9', '#CE93D8'];
+
+    // 7가지 무지개 색상: 빨강, 주황, 노랑, 초록, 파랑, 남색, 보라
+    const colors = ['#FF0000', '#FFA500', '#FFFF00', '#25ac25', '#0000FF', '#4B0082', '#EE82EE'];
 
     function getRandomColor() {
       return colors[Math.floor(Math.random() * colors.length)];
